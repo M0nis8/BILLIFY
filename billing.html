@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Billify - Generate Bill</title>
+    <style>
+        :root {
+            --maroon: #800000;
+            --brown: #8B4513;
+            --light-brown: #D2B48C;
+            --cream: #F5F5DC;
+            --dark-brown: #5D4037;
+            --bg-beige: #F5EFDC;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, var(--bg-beige), #E6D7B8);
+            min-height: 100vh;
+            position: relative;
+            color: var(--dark-brown);
+        }
+        
+        body::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(139, 69, 19, 0.05) 0%, transparent 20%),
+                radial-gradient(circle at 90% 30%, rgba(128, 0, 0, 0.07) 0%, transparent 25%),
+                radial-gradient(circle at 30% 70%, rgba(139, 69, 19, 0.05) 0%, transparent 15%),
+                radial-gradient(circle at 70% 85%, rgba(128, 0, 0, 0.07) 0%, transparent 20%);
+            z-index: -1;
+        }
+        
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 40px;
+            background: linear-gradient(135deg, var(--maroon), var(--dark-brown));
+            color: white;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            width: 100%;
+        }
+        
+        .logo {
+            font-size: 2.2rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        
+        .logo span {
+            color: var(--light-brown);
+        }
+        
+        .user-menu {
+            font-size: 1.5rem;
+            position: relative;
+            cursor: pointer;
+        }
+        
+        /* New styles for dropdown menu */
+        .dropdown-menu {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            width: 220px;
+            z-index: 100;
+            margin-top: 10px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+        }
+        
+        .dropdown-menu.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+        
+        .dropdown-menu::before {
+            content: '';
+            position: absolute;
+            top: -10px;
+            right: 15px;
+            width: 0;
+            height: 0;
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-bottom: 10px solid white;
+        }
+        
+        .dropdown-item {
+            padding: 14px 20px;
+            display: flex;
+            align-items: center;
+            color: var(--dark-brown);
+            text-decoration: none;
+            border-bottom: 1px solid #f1f1f1;
+            transition: background-color 0.2s;
+        }
+        
+        .dropdown-item:last-child {
+            border-bottom: none;
+        }
+        
+        .dropdown-item:hover {
+            background-color: #f9f5eb;
+        }
+        
+        .dropdown-item i {
+            margin-right: 12px;
+            color: var(--brown);
+            width: 20px;
+            text-align: center;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 1100px;
+            margin: 50px auto;
+            padding: 0;
+        }
+        
+        .bill-container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 15px 35px rgba(93, 64, 55, 0.2);
+            padding: 25px;
+            margin-bottom: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .bill-header {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 2px dashed var(--light-brown);
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .business-info {
+            flex: 1;
+        }
+        
+        .business-name {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--maroon);
+            margin-bottom: 5px;
+        }
+        
+        .business-details {
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .bill-meta {
+            text-align: right;
+        }
+        
+        .bill-number {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .bill-date {
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .bill-title {
+            text-align: center;
+            font-size: 22px;
+            margin: 20px 0;
+            color: var(--dark-brown);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        
+        .bill-items {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        
+        .bill-items th, .bill-items td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--light-brown);
+        }
+        
+        .bill-items th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+            color: var(--dark-brown);
+        }
+        
+        .bill-items tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .bill-items .total-row td {
+            border-top: 2px solid var(--maroon);
+            font-weight: bold;
+        }
+        
+        .bill-items .total-row td:first-child {
+            text-align: right;
+        }
+        
+        .bill-footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 14px;
+            color: #666;
+            border-top: 2px dashed var(--light-brown);
+            padding-top: 15px;
+        }
+        
+        .bill-actions {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        
+        .btn {
+            background: linear-gradient(to right, var(--maroon), var(--brown));
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.3s;
+        }
+        
+        .btn:hover {
+            opacity: 0.9;
+        }
+        
+        .btn-secondary {
+            background: #f1f1f1;
+            color: #555;
+            border: 1px solid #ddd;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--dark-brown);
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: border 0.3s;
+        }
+        
+        .form-control:focus {
+            border-color: var(--maroon);
+            outline: none;
+        }
+        
+        .customer-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        
+        .customer-details, .payment-details {
+            flex: 1;
+        }
+        
+        .section-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: var(--brown);
+        }
+        
+        .bill-summary {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+        
+        .summary-table {
+            width: 300px;
+        }
+        
+        .summary-table td {
+            padding: 5px 0;
+        }
+        
+        .summary-table .total {
+            font-weight: bold;
+            font-size: 18px;
+            border-top: 1px solid var(--light-brown);
+            padding-top: 10px;
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 5px;
+            color: white;
+            font-weight: 500;
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+        
+        .notification.success {
+            background-color: #4CAF50;
+        }
+        
+        .notification.error {
+            background-color: #F44336;
+        }
+        
+        .notification.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .bill-accent {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 10px;
+            height: 100%;
+            background: linear-gradient(to bottom, var(--maroon), var(--brown));
+            border-top-left-radius: 10px;
+            border-bottom-left-radius: 10px;
+        }
+        
+        .bill-watermark {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-45deg);
+            color: rgba(0,0,0,0.03);
+            font-size: 120px;
+            font-weight: bold;
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        .qr-code {
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        @media print {
+            .no-print {
+                display: none;
+            }
+            
+            body {
+                background-color: white;
+            }
+            
+            .container {
+                max-width: 100%;
+                width: 100%;
+                padding: 0;
+            }
+            
+            .bill-container {
+                box-shadow: none;
+                padding: 0;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .header {
+                padding: 15px 20px;
+            }
+            
+            .logo {
+                font-size: 1.8rem;
+            }
+            
+            .container {
+                margin: 30px 15px;
+            }
+            
+            .customer-info {
+                flex-direction: column;
+            }
+            
+            .customer-details, .payment-details {
+                width: 100%;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <header class="header">
+        <div class="logo">Billi<span>fy</span></div>
+        <div class="user-menu" id="user-menu-toggle">
+            <i class="fas fa-user-circle"></i>
+            <div class="dropdown-menu" id="user-dropdown">
+                <a href="menu.html" class="dropdown-item">
+                    <i class="fas fa-boxes"></i>
+                    Inventory Management
+                </a>
+                <a href="home.html" class="dropdown-item">
+                    <i class="fas fa-home"></i>
+                    Go Home
+                </a>
+                <a href="profile.html" class="dropdown-item">
+                    <i class="fas fa-user"></i>
+                    Profile
+                </a>
+            </div>
+        </div>
+    </header>
+    
+    <div class="container">
+        <div class="bill-container">
+            <div class="bill-accent"></div>
+            <div class="print-area">
+                <div class="bill-header">
+                    <div class="business-info">
+                        <div class="business-name" id="business-name">Restaurant Name</div>
+                        <div class="business-details">
+                            <div id="business-address">123 Culinary Street, Foodtown</div>
+                            <div id="business-contact">Phone: (123) 456-7890 | Email: info@restaurant.com</div>
+                        </div>
+                    </div>
+                    <div class="bill-meta">
+                        <div class="bill-number">Invoice #: <span id="bill-number"></span></div>
+                        <div class="bill-date">Date: <span id="bill-date"></span></div>
+                    </div>
+                </div>
+                
+                <div class="bill-watermark" id="watermark">PAID</div>
+                
+                <div class="bill-title">Tax Invoice</div>
+                
+                <div class="customer-info">
+                    <div class="customer-details">
+                        <div class="section-title">Customer Information</div>
+                        <div class="form-group no-print">
+                            <label for="customer-name">Name</label>
+                            <input type="text" id="customer-name" class="form-control">
+                        </div>
+                        <div class="form-group no-print">
+                            <label for="customer-contact">Contact</label>
+                            <input type="text" id="customer-contact" class="form-control">
+                        </div>
+                        <div id="customer-info-display"></div>
+                    </div>
+                    <div class="payment-details">
+                        <div class="section-title">Payment Details</div>
+                        <div class="form-group no-print">
+                            <label for="payment-method">Payment Method</label>
+                            <select id="payment-method" class="form-control">
+                                <option value="cash">Cash</option>
+                                <option value="card">Credit/Debit Card</option>
+                                <option value="online">Online Payment</option>
+                            </select>
+                        </div>
+                        <div id="payment-info-display"></div>
+                    </div>
+                </div>
+                
+                <table class="bill-items">
+                    <thead>
+                        <tr>
+                            <th width="5%">#</th>
+                            <th width="40%">Item</th>
+                            <th width="15%">Price</th>
+                            <th width="10%">Qty</th>
+                            <th width="15%">Tax (%)</th>
+                            <th width="15%">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody id="bill-items-body">
+                        <!-- Bill items will be added here dynamically -->
+                    </tbody>
+                </table>
+                
+                <div class="bill-summary">
+                    <table class="summary-table">
+                        <tr>
+                            <td>Subtotal:</td>
+                            <td id="subtotal" align="right">$0.00</td>
+                        </tr>
+                        <tr>
+                            <td>Tax:</td>
+                            <td id="tax-amount" align="right">$0.00</td>
+                        </tr>
+                        <tr class="total">
+                            <td>Total:</td>
+                            <td id="total-amount" align="right">$0.00</td>
+                        </tr>
+                    </table>
+                </div>
+                
+                <div class="bill-footer">
+                    <p>Thank you for your business!</p>
+                    <p id="terms-conditions">All prices include applicable taxes. Payment is due upon receipt.</p>
+                </div>
+                
+                <div class="qr-code">
+                    <!-- Placeholder for QR code -->
+                    <svg width="100" height="100" viewBox="0 0 100 100" id="qr-placeholder">
+                        <rect x="10" y="10" width="80" height="80" fill="none" stroke="#ccc" stroke-width="2" />
+                        <text x="50" y="55" font-size="10" text-anchor="middle" fill="#ccc">QR Code</text>
+                    </svg>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bill-actions no-print">
+            <button id="back-btn" class="btn btn-secondary">Back to Home</button>
+            <button id="add-item-btn" class="btn">Add Item</button>
+            <button id="complete-bill-btn" class="btn">Complete Bill</button>
+            <button id="print-bill-btn" class="btn">Print Bill</button>
+            <button id="download-bill-btn" class="btn btn-secondary">Download PDF</button>
+        </div>
+    </div>
+    
+    <div id="notification" class="notification"></div>
+    
+    <script>
+        // Initialize variables
+        let menuItems = [];
+        let billItems = [];
+        let billNumber = generateBillNumber();
+        let businessInfo = {
+            name: "Restaurant Name",
+            address: "123 Culinary Street, Foodtown",
+            contact: "Phone: (123) 456-7890 | Email: info@restaurant.com"
+        };
+        
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set bill number and date
+            document.getElementById('bill-number').textContent = billNumber;
+            document.getElementById('bill-date').textContent = new Date().toLocaleDateString();
+            
+            // Load menu items from localStorage
+            loadMenuItems();
+            
+            // Event listeners
+            document.getElementById('back-btn').addEventListener('click', function() {
+                window.location.href = 'home.html';
+            });
+            
+            document.getElementById('add-item-btn').addEventListener('click', addBillItem);
+            
+            document.getElementById('complete-bill-btn').addEventListener('click', function() {
+                completeCustomerInfo();
+                showNotification('Bill completed successfully!', 'success');
+            });
+            
+            document.getElementById('print-bill-btn').addEventListener('click', function() {
+                window.print();
+            });
+            
+            document.getElementById('download-bill-btn').addEventListener('click', function() {
+                showNotification('PDF download started...', 'success');
+                // In a real application, this would trigger PDF generation
+            });
+            
+            // Load business info from localStorage if available
+            if(localStorage.getItem('businessInfo')) {
+                businessInfo = JSON.parse(localStorage.getItem('businessInfo'));
+                updateBusinessInfo();
+            }
+            
+            // Dropdown menu functionality
+            const userMenuToggle = document.getElementById('user-menu-toggle');
+            const userDropdown = document.getElementById('user-dropdown');
+            
+            userMenuToggle.addEventListener('click', function(e) {
+                e.stopPropagation();
+                userDropdown.classList.toggle('active');
+            });
+            
+            // Close dropdown when clicking elsewhere
+            document.addEventListener('click', function(e) {
+                if (!userMenuToggle.contains(e.target)) {
+                    userDropdown.classList.remove('active');
+                }
+            });
+        });
+        
+        // Load menu items from localStorage
+        function loadMenuItems() {
+            if(localStorage.getItem('menuItems')) {
+                menuItems = JSON.parse(localStorage.getItem('menuItems'));
+                console.log('Menu items loaded:', menuItems);
+            }
+        }
+        
+        // Add an item to the bill
+        function addBillItem() {
+            // Create a new row for bill item
+            const billItemRow = document.createElement('tr');
+            billItemRow.className = 'bill-item';
+            const itemIndex = document.querySelectorAll('.bill-item').length + 1;
+            
+            billItemRow.innerHTML = `
+                <td>${itemIndex}</td>
+                <td>
+                    <select class="form-control item-select">
+                        <option value="">Select an item</option>
+                        ${menuItems.map(item => `<option value="${item.id}" data-price="${item.price}" data-tax="${item.tax}">${item.name}</option>`).join('')}
+                    </select>
+                </td>
+                <td class="item-price">$0.00</td>
+                <td>
+                    <input type="number" class="form-control item-quantity" value="1" min="1">
+                </td>
+                <td class="item-tax">0%</td>
+                <td class="item-total">$0.00</td>
+            `;
+            
+            document.getElementById('bill-items-body').appendChild(billItemRow);
+            
+            // Add event listeners to the new row
+            const itemSelect = billItemRow.querySelector('.item-select');
+            const itemQuantity = billItemRow.querySelector('.item-quantity');
+            
+            itemSelect.addEventListener('change', function() {
+                updateItemRow(billItemRow);
+                updateBillTotals();
+            });
+            
+            itemQuantity.addEventListener('input', function() {
+                updateItemRow(billItemRow);
+                updateBillTotals();
+            });
+        }
+        
+        // Update a bill item row calculations
+        function updateItemRow(row) {
+            const itemSelect = row.querySelector('.item-select');
+            const itemQuantity = row.querySelector('.item-quantity');
+            const itemPrice = row.querySelector('.item-price');
+            const itemTax = row.querySelector('.item-tax');
+            const itemTotal = row.querySelector('.item-total');
+            
+            if(itemSelect.value) {
+                const selectedOption = itemSelect.options[itemSelect.selectedIndex];
+                const price = parseFloat(selectedOption.dataset.price);
+                const tax = parseFloat(selectedOption.dataset.tax);
+                const quantity = parseInt(itemQuantity.value);
+                
+                itemPrice.textContent = `$${price.toFixed(2)}`;
+                itemTax.textContent = `${tax}%`;
+                
+                const totalBeforeTax = price * quantity;
+                const taxAmount = totalBeforeTax * (tax / 100);
+                const total = totalBeforeTax + taxAmount;
+                
+                itemTotal.textContent = `$${total.toFixed(2)}`;
+            } else {
+                itemPrice.textContent = '$0.00';
+                itemTax.textContent = '0%';
+                itemTotal.textContent = '$0.00';
+            }
+        }
+        
+        // Update bill totals
+        function updateBillTotals() {
+            let subtotal = 0;
+            let taxTotal = 0;
+            
+            document.querySelectorAll('.bill-item').forEach(function(row) {
+                const itemSelect = row.querySelector('.item-select');
+                
+                if(itemSelect.value) {
+                    const selectedOption = itemSelect.options[itemSelect.selectedIndex];
+                    const price = parseFloat(selectedOption.dataset.price);
+                    const tax = parseFloat(selectedOption.dataset.tax);
+                    const quantity = parseInt(row.querySelector('.item-quantity').value);
+                    
+                    const itemSubtotal = price * quantity;
+                    const itemTax = itemSubtotal * (tax / 100);
+                    
+                    subtotal += itemSubtotal;
+                    taxTotal += itemTax;
+                }
+            });
+            
+            const total = subtotal + taxTotal;
+            
+            document.getElementById('subtotal').textContent = `$${subtotal.toFixed(2)}`;
+            document.getElementById('tax-amount').textContent = `$${taxTotal.toFixed(2)}`;
+            document.getElementById('total-amount').textContent = `$${total.toFixed(2)}`;
+        }
+        
+        // Complete customer information
+        function completeCustomerInfo() {
+            const customerName = document.getElementById('customer-name').value || 'Guest';
+            const customerContact = document.getElementById('customer-contact').value || 'N/A';
+            const paymentMethod = document.getElementById('payment-method').value;
+            
+            // Display customer info
+            document.getElementById('customer-info-display').innerHTML = `
+                <p><strong>Name:</strong> ${customerName}</p>
+                <p><strong>Contact:</strong> ${customerContact}</p>
+            `;
+            
+            // Display payment info
+            document.getElementById('payment-info-display').innerHTML = `
+                <p><strong>Method:</strong> ${paymentMethod.charAt(0).toUpperCase() + paymentMethod.slice(1)}</p>
+                <p><strong>Status:</strong> Paid</p>
+            `;
+            
+            // Hide input forms
+            document.querySelectorAll('.no-print .form-group').forEach(function(el) {
+                el.style.display = 'none';
+            });
+            
+            // Set watermark to PAID
+            document.getElementById('watermark').style.color = 'rgba(0,200,0,0.03)';
+        }
+        
+        // Update business information
+        function updateBusinessInfo() {
+            document.getElementById('business-name').textContent = businessInfo.name;
+            document.getElementById('business-address').textContent = businessInfo.address;
+            document.getElementById('business-contact').textContent = businessInfo.contact;
+        }
+        
+        // Generate a random bill number
+        function generateBillNumber() {
+            const prefix = 'INV';
+            const timestamp = new Date().getTime().toString().slice(-6);
+            const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+            return `${prefix}-${timestamp}-${random}`;
+        }
+        
+        // Show notification
+        function showNotification(message, type) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `notification ${type} show`;
+            
+            setTimeout(function() {
+                notification.className = 'notification';
+            }, 3000);
+        }
+        
+        // Add at least one item by default
+        document.addEventListener('DOMContentLoaded', function() {
+            addBillItem();
+        });
+    </script>
+</body>
+</html>

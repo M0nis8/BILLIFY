@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Billify - Business Details</title>
+    <style>
+        :root {
+            --maroon: #800000;
+            --brown: #8B4513;
+            --light-brown: #D2B48C;
+            --cream: #F5F5DC;
+            --dark-brown: #5D4037;
+            --bg-beige: #F5EFDC;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, var(--bg-beige), #E6D7B8);
+            min-height: 100vh;
+            position: relative;
+        }
+        
+        body::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(139, 69, 19, 0.05) 0%, transparent 20%),
+                radial-gradient(circle at 90% 30%, rgba(128, 0, 0, 0.07) 0%, transparent 25%),
+                radial-gradient(circle at 30% 70%, rgba(139, 69, 19, 0.05) 0%, transparent 15%),
+                radial-gradient(circle at 70% 85%, rgba(128, 0, 0, 0.07) 0%, transparent 20%);
+            z-index: -1;
+        }
+        
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 40px;
+            background: linear-gradient(135deg, var(--maroon), var(--dark-brown));
+            color: white;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            width: 100%;
+        }
+        
+        .logo {
+            font-size: 2.2rem;
+            font-weight: 700;
+        }
+        
+        .logo span {
+            color: var(--light-brown);
+        }
+        
+        .user-menu {
+            font-size: 1.5rem;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 900px;
+            margin: 50px auto;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 15px 35px rgba(93, 64, 55, 0.2);
+            overflow: hidden;
+        }
+        
+        .form-container {
+            padding: 40px;
+        }
+        
+        .form-title {
+            font-size: 1.8rem;
+            color: var(--dark-brown);
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--light-brown);
+        }
+        
+        .form-description {
+            color: #666;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+        
+        .form-section {
+            margin-bottom: 30px;
+        }
+        
+        .section-title {
+            font-size: 1.2rem;
+            color: var(--brown);
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        
+        .form-row {
+            display: flex;
+            flex-wrap: wrap;
+            margin: 0 -15px;
+        }
+        
+        .form-group {
+            flex: 1 0 calc(50% - 30px);
+            margin: 0 15px 20px;
+            min-width: 250px;
+        }
+        
+        .form-group.full-width {
+            flex: 1 0 calc(100% - 30px);
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--dark-brown);
+        }
+        
+        .form-group input, 
+        .form-group select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: border 0.3s;
+        }
+        
+        .form-group input:focus, 
+        .form-group select:focus {
+            border-color: var(--maroon);
+            outline: none;
+        }
+        
+        .phone-input {
+            display: flex;
+        }
+        
+        .phone-input select {
+            width: 100px;
+            margin-right: 10px;
+            flex-shrink: 0;
+        }
+        
+        .phone-input input {
+            flex-grow: 1;
+        }
+        
+        .buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 40px;
+        }
+        
+        button {
+            background: linear-gradient(to right, var(--maroon), var(--brown));
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.3s;
+        }
+        
+        button:hover {
+            opacity: 0.9;
+        }
+        
+        .btn-secondary {
+            background: #f1f1f1;
+            color: #555;
+            border: 1px solid #ddd;
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 5px;
+            color: white;
+            font-weight: 500;
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+        
+        .notification.success {
+            background-color: #4CAF50;
+        }
+        
+        .notification.error {
+            background-color: #F44336;
+        }
+        
+        .notification.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        @keyframes fadeOut {
+            from {opacity: 1; transform: translateY(0);}
+            to {opacity: 0; transform: translateY(-20px);}
+        }
+        
+        @media (max-width: 768px) {
+            .form-container {
+                padding: 30px 20px;
+            }
+            
+            .header {
+                padding: 15px 20px;
+            }
+            
+            .logo {
+                font-size: 1.8rem;
+            }
+            
+            .form-group {
+                flex: 1 0 calc(100% - 30px);
+            }
+            
+            .container {
+                margin: 30px 15px;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <header class="header">
+        <div class="logo">Billi<span>fy</span></div>
+        <div class="user-menu">
+            <i class="fas fa-user-circle"></i>
+        </div>
+    </header>
+    
+    <div class="container">
+        <div class="form-container">
+            <h1 class="form-title">Business Details</h1>
+            <p class="form-description">Please provide your business information to set up your Billify account. This information will appear on your invoices and other documents.</p>
+            
+            <form id="business-details-form">
+                <div class="form-section">
+                    <h3 class="section-title">Owner Information</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="owner-name">Business Owner Name*</label>
+                            <input type="text" id="owner-name" name="owner-name" placeholder="Enter your full name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="phone">Phone Number*</label>
+                            <div class="phone-input">
+                                <select id="country-code" name="country-code">
+                                    <option value="+1">+1 (US)</option>
+                                    <option value="+44">+44 (UK)</option>
+                                    <option value="+91">+91 (IN)</option>
+                                    <option value="+61">+61 (AU)</option>
+                                    <option value="+86">+86 (CN)</option>
+                                    <option value="+49">+49 (DE)</option>
+                                    <option value="+33">+33 (FR)</option>
+                                    <option value="+81">+81 (JP)</option>
+                                    <option value="+82">+82 (KR)</option>
+                                    <option value="+7">+7 (RU)</option>
+                                    <option value="+55">+55 (BR)</option>
+                                    <option value="+52">+52 (MX)</option>
+                                </select>
+                                <input type="tel" id="phone" name="phone" placeholder="Enter your phone number" required>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-section">
+                    <h3 class="section-title">Business Information</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="business-name">Business Name*</label>
+                            <input type="text" id="business-name" name="business-name" placeholder="Enter your business name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="business-type">Business Type*</label>
+                            <input type="text" id="business-type" name="business-type" placeholder="Enter your business type" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="gst-number">GST Number (if applicable)</label>
+                            <input type="text" id="gst-number" name="gst-number" placeholder="Enter your GST number">
+                        </div>
+                        <div class="form-group">
+                            <label for="business-reg">Business Registration Number*</label>
+                            <input type="text" id="business-reg" name="business-reg" placeholder="Enter your business registration number" required>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-section">
+                    <h3 class="section-title">Business Address</h3>
+                    <div class="form-row">
+                        <div class="form-group full-width">
+                            <label for="address-line1">Street Address*</label>
+                            <input type="text" id="address-line1" name="address-line1" placeholder="Enter your street address" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="city">City*</label>
+                            <input type="text" id="city" name="city" placeholder="Enter your city" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="state">State/Province*</label>
+                            <input type="text" id="state" name="state" placeholder="Enter your state or province" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="postal-code">Postal/ZIP Code*</label>
+                            <input type="text" id="postal-code" name="postal-code" placeholder="Enter your postal or ZIP code" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="country">Country*</label>
+                            <select id="country" name="country" required>
+                                <option value="">Select your country</option>
+                                <option value="us">United States</option>
+                                <option value="uk">United Kingdom</option>
+                                <option value="ca">Canada</option>
+                                <option value="au">Australia</option>
+                                <option value="in">India</option>
+                                <option value="de">Germany</option>
+                                <option value="fr">France</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-section">
+                    <h3 class="section-title">Contact Information</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="email">Business Email*</label>
+                            <input type="email" id="email" name="email" placeholder="Enter your business email" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="website">Business Website</label>
+                            <input type="url" id="website" name="website" placeholder="Enter your business website">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="buttons">
+                    <button type="button" class="btn-secondary" id="back-btn">Back</button>
+                    <button type="submit" id="submit-btn">Save & Continue</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <div class="notification" id="notification"></div>
+
+    <script>
+        // Load any existing business info from localStorage
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedBusinessInfo = localStorage.getItem('businessInfo');
+            if (savedBusinessInfo) {
+                const businessInfo = JSON.parse(savedBusinessInfo);
+                
+                // Populate form fields with saved data
+                if (businessInfo.ownerName) document.getElementById('owner-name').value = businessInfo.ownerName;
+                if (businessInfo.phone) {
+                    // Extract country code and phone number
+                    const phoneMatch = businessInfo.phone.match(/^(\+\d+)(.*)$/);
+                    if (phoneMatch) {
+                        document.getElementById('country-code').value = phoneMatch[1];
+                        document.getElementById('phone').value = phoneMatch[2];
+                    } else {
+                        document.getElementById('phone').value = businessInfo.phone;
+                    }
+                }
+                
+                if (businessInfo.name) document.getElementById('business-name').value = businessInfo.name;
+                if (businessInfo.type) document.getElementById('business-type').value = businessInfo.type;
+                if (businessInfo.gstNumber) document.getElementById('gst-number').value = businessInfo.gstNumber;
+                if (businessInfo.regNumber) document.getElementById('business-reg').value = businessInfo.regNumber;
+                
+                if (businessInfo.address) {
+                    if (businessInfo.address.street) document.getElementById('address-line1').value = businessInfo.address.street;
+                    if (businessInfo.address.city) document.getElementById('city').value = businessInfo.address.city;
+                    if (businessInfo.address.state) document.getElementById('state').value = businessInfo.address.state;
+                    if (businessInfo.address.postalCode) document.getElementById('postal-code').value = businessInfo.address.postalCode;
+                    if (businessInfo.address.country) document.getElementById('country').value = businessInfo.address.country;
+                }
+                
+                if (businessInfo.email) document.getElementById('email').value = businessInfo.email;
+                if (businessInfo.website) document.getElementById('website').value = businessInfo.website;
+            }
+        });
+
+        // Notification function
+        function showNotification(message, type) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `notification ${type}`;
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.style.animation = 'fadeOut 0.5s forwards';
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                    notification.style.animation = '';
+                }, 500);
+            }, 3000);
+        }
+
+        // Form submission
+        document.getElementById('business-details-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const form = e.target;
+            // Basic validation
+            const requiredFields = form.querySelectorAll('[required]');
+            let isValid = true;
+            requiredFields.forEach(field => {
+                if (!field.value.trim()) {
+                    isValid = false;
+                    field.style.borderColor = '#F44336';
+                } else {
+                    field.style.borderColor = '#ddd';
+                }
+            });
+            if (!isValid) {
+                showNotification('Please fill in all required fields', 'error');
+                return;
+            }
+
+            // Gather business information to store
+            const businessInfo = {
+                name: document.getElementById('business-name').value,
+                ownerName: document.getElementById('owner-name').value,
+                phone: document.getElementById('country-code').value + document.getElementById('phone').value,
+                type: document.getElementById('business-type').value,
+                gstNumber: document.getElementById('gst-number').value,
+                regNumber: document.getElementById('business-reg').value,
+                address: {
+                    street: document.getElementById('address-line1').value,
+                    city: document.getElementById('city').value,
+                    state: document.getElementById('state').value,
+                    postalCode: document.getElementById('postal-code').value,
+                    country: document.getElementById('country').value
+                },
+                email: document.getElementById('email').value,
+                website: document.getElementById('website').value
+            };
+            
+            // Format the address and contact for the billing page
+            const formattedBusinessInfo = {
+                name: businessInfo.name,
+                address: `${businessInfo.address.street}, ${businessInfo.address.city}, ${businessInfo.address.state} ${businessInfo.address.postalCode}`,
+                contact: `Phone: ${businessInfo.phone} | Email: ${businessInfo.email}`,
+                gstNumber: businessInfo.gstNumber
+            };
+            
+            // Store the information in localStorage
+            localStorage.setItem('businessInfo', JSON.stringify(businessInfo));
+            localStorage.setItem('formattedBusinessInfo', JSON.stringify(formattedBusinessInfo));
+
+            showNotification('Business details saved successfully!', 'success');
+            
+            setTimeout(() => {
+                window.location.href = 'billing.html';
+            }, 2000);
+        });
+
+        // Back button functionality
+        document.getElementById('back-btn').addEventListener('click', function() {
+            if(confirm('Are you sure you want to go back? Any unsaved changes will be lost.')) {
+                window.location.href = 'dashboard.html';
+            }
+        });
+    </script>
+</body>
+</html>
